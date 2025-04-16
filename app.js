@@ -3,7 +3,15 @@ const cardForm = document.getElementById('add-card-form');
 const cardList = document.getElementById('card-list');
 const searchInput = document.getElementById('search-input');
 const rarityFilter = document.getElementById('filter-rarity');
+const conditionFilter = document.getElementById('filter-condition');
+const dateFromFilter = document.getElementById('filter-date-from');
+const dateToFilter = document.getElementById('filter-date-to');
+const numberMinFilter = document.getElementById('number-min');
+const numberMaxFilter = document.getElementById('number-max');
+const sortByFilter = document.getElementById('sort-by');
 const clearFiltersBtn = document.getElementById('clear-filters');
+const toggleAdvancedFiltersBtn = document.getElementById('toggle-advanced-filters');
+const advancedFiltersContent = document.querySelector('.advanced-filters-content');
 const cardModal = document.getElementById('card-modal');
 const cardDetails = document.getElementById('card-details');
 const closeModalBtn = document.querySelector('.close');
@@ -232,18 +240,116 @@ function updateCard(cardId, updatedData) {
     }
 }
 
-// Render cards to the DOM
+// Sort cards based on sort option
+function sortCards(cardsToSort, sortOption) {
+    // Create a new array to avoid modifying the original
+    const sortedCards = [...cardsToSort];
+    
+    switch(sortOption) {
+        case 'name-asc':
+            sortedCards.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'name-desc':
+            sortedCards.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+        case 'number-asc':
+            sortedCards.sort((a, b) => {
+                // Try to extract numeric values for comparison
+                const aNum = parseInt(a.number.match(/(\d+)/)?.[0] || a.number);
+                const bNum = parseInt(b.number.match(/(\d+)/)?.[0] || b.number);
+                return aNum - bNum;
+            });
+            break;
+        case 'number-desc':
+            sortedCards.sort((a, b) => {
+                // Try to extract numeric values for comparison
+                const aNum = parseInt(a.number.match(/(\d+)/)?.[0] || a.number);
+                const bNum = parseInt(b.number.match(/(\d+)/)?.[0] || b.number);
+                return bNum - aNum;
+            });
+            break;
+        case 'date-added-desc':
+            sortedCards.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            break;
+        case 'date-added-asc':
+            sortedCards.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            break;
+        default:
+            // Default sort by name ascending
+            sortedCards.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return sortedCards;
+}
+
+// Render cards to the DOM with enhanced filtering
 function renderCards() {
-    // Filter cards based on search and filter options
+    // Get all filter values
     const searchTerm = searchInput.value.toLowerCase();
     const rarityValue = rarityFilter.value;
+    const conditionValue = conditionFilter.value;
+    const dateFromValue = dateFromFilter.value;
+    const dateToValue = dateToFilter.value;
+    const numberMinValue = numberMinFilter.value;
+    const numberMaxValue = numberMaxFilter.value;
+    const sortByValue = sortByFilter.value;
     
-    const filteredCards = cards.filter(card => {
+    // Filter cards based on all filter criteria
+    let filteredCards = cards.filter(card => {
+        // Basic name and rarity filter (existing)
         const matchesSearch = card.name.toLowerCase().includes(searchTerm);
         const matchesRarity = !rarityValue || card.rarity === rarityValue;
         
-        return matchesSearch && matchesRarity;
+        // New condition filter
+        const matchesCondition = !conditionValue || card.condition === conditionValue;
+        
+        // Date range filter
+        let matchesDateRange = true;
+        if (card.purchaseDate) {
+            const cardDate = new Date(card.purchaseDate);
+            if (dateFromValue && new Date(dateFromValue) > cardDate) {
+                matchesDateRange = false;
+            }
+            if (dateToValue && new Date(dateToValue) < cardDate) {
+                matchesDateRange = false;
+            }
+        } else if (dateFromValue || dateToValue) {
+            // If dates are filtered but card has no date, exclude it
+            matchesDateRange = false;
+        }
+        
+        // Card number range filter
+        let matchesNumberRange = true;
+        // Extract numeric part from card number (if it's like "SV01-123")
+        const cardNumberStr = card.number;
+        let cardNumber;
+        
+        // Try to extract just the numeric part if it contains non-numeric characters
+        const numericMatch = cardNumberStr.match(/(\d+)/);
+        if (numericMatch) {
+            cardNumber = parseInt(numericMatch[0], 10);
+        } else {
+            // If no numeric part found, try parsing the whole string
+            cardNumber = parseInt(cardNumberStr, 10);
+        }
+        
+        // Apply number range filter if we could parse a number
+        if (!isNaN(cardNumber)) {
+            if (numberMinValue && !isNaN(parseInt(numberMinValue)) && cardNumber < parseInt(numberMinValue)) {
+                matchesNumberRange = false;
+            }
+            if (numberMaxValue && !isNaN(parseInt(numberMaxValue)) && cardNumber > parseInt(numberMaxValue)) {
+                matchesNumberRange = false;
+            }
+        }
+        
+        // Combine all filters
+        return matchesSearch && matchesRarity && matchesCondition && 
+               matchesDateRange && matchesNumberRange;
     });
+    
+    // Apply sorting
+    filteredCards = sortCards(filteredCards, sortByValue);
     
     // Clear the card list
     cardList.innerHTML = '';
@@ -519,6 +625,24 @@ function closeModal() {
     cardModal.style.display = 'none';
 }
 
+// Debounce function to limit calls for input events
+function debounce(func, delay) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
+// Toggle advanced filters visibility
+function toggleAdvancedFilters() {
+    const isVisible = advancedFiltersContent.style.display !== 'none';
+    advancedFiltersContent.style.display = isVisible ? 'none' : 'block';
+    toggleAdvancedFiltersBtn.textContent = isVisible ? 'Advanced Filters ▼' : 'Advanced Filters ▲';
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Fix image paths
@@ -575,10 +699,27 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', renderCards);
     rarityFilter.addEventListener('change', renderCards);
     
-    // Clear filters
+    // New filter event listeners
+    conditionFilter.addEventListener('change', renderCards);
+    dateFromFilter.addEventListener('change', renderCards);
+    dateToFilter.addEventListener('change', renderCards);
+    sortByFilter.addEventListener('change', renderCards);
+    numberMinFilter.addEventListener('input', debounce(renderCards, 500));
+    numberMaxFilter.addEventListener('input', debounce(renderCards, 500));
+    
+    // Toggle advanced filters
+    toggleAdvancedFiltersBtn.addEventListener('click', toggleAdvancedFilters);
+    
+    // Update clear filters button to handle all new filters
     clearFiltersBtn.addEventListener('click', () => {
         searchInput.value = '';
         rarityFilter.value = '';
+        conditionFilter.value = '';
+        dateFromFilter.value = '';
+        dateToFilter.value = '';
+        numberMinFilter.value = '';
+        numberMaxFilter.value = '';
+        sortByFilter.value = 'name-asc';
         renderCards();
     });
     

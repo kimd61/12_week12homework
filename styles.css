@@ -134,19 +134,87 @@ textarea {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* Updated Filter Options Styles */
 .filter-options {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
 }
 
-.filter-options input,
-.filter-options select {
+.date-filter {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    grid-column: 1 / -1;
+}
+
+.date-filter label {
+    display: inline;
+    font-size: 12px;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.date-filter input {
     flex: 1;
-    min-width: 150px;
 }
 
+/* Advanced Filters Styles */
+.advanced-filters {
+    margin-bottom: 20px;
+}
+
+.btn-toggle {
+    background: none;
+    border: none;
+    color: #3B4CCA;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 10px;
+    transition: color 0.3s;
+}
+
+.btn-toggle:hover {
+    color: #ff9800;
+}
+
+.advanced-filters-content {
+    padding: 15px;
+    background-color: #2A3340;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #404a5a;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #CCC;
+}
+
+.range-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.range-filter input {
+    width: 45%;
+}
+
+.range-filter span {
+    color: #CCC;
+}
+
+/* Original Card Container Styles */
 .card-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -338,7 +406,7 @@ textarea {
     }
     
     .filter-options {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
     
     .detail-header {
@@ -350,6 +418,23 @@ textarea {
         max-width: 200px;
         margin: 0 auto;
     }
+    
+    .date-filter {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .range-filter {
+        flex-direction: column;
+    }
+    
+    .range-filter span {
+        display: none;
+    }
+    
+    .range-filter input {
+        width: 100%;
+    }
 }
 
 /* Add a fade-in effect when loading card images */
@@ -359,7 +444,7 @@ textarea {
     object-fit: contain;
     border-radius: 4px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
+    background-color: #2A3340;
     transition: opacity 0.3s ease;
 }
 

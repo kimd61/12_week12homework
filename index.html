@@ -96,7 +96,52 @@
                     <option value="Ultra Rare">Ultra Rare</option>
                     <option value="Secret Rare">Secret Rare</option>
                 </select>
+                
+                <!-- Add new filter dropdowns -->
+                <select id="filter-condition">
+                    <option value="">All Conditions</option>
+                    <option value="Mint">Mint</option>
+                    <option value="Near Mint">Near Mint</option>
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Poor">Poor</option>
+                </select>
+                
+                <div class="date-filter">
+                    <label for="filter-date-from">From:</label>
+                    <input type="date" id="filter-date-from">
+                    <label for="filter-date-to">To:</label>
+                    <input type="date" id="filter-date-to">
+                </div>
+                
                 <button id="clear-filters" class="btn-secondary">Clear Filters</button>
+            </div>
+            
+            <!-- Add advanced filters section (initially hidden) -->
+            <div class="advanced-filters">
+                <button id="toggle-advanced-filters" class="btn-toggle">Advanced Filters ▼</button>
+                <div class="advanced-filters-content" style="display: none;">
+                    <div class="filter-group">
+                        <h3>Sort By</h3>
+                        <select id="sort-by">
+                            <option value="name-asc">Name (A-Z)</option>
+                            <option value="name-desc">Name (Z-A)</option>
+                            <option value="number-asc">Card Number (Low-High)</option>
+                            <option value="number-desc">Card Number (High-Low)</option>
+                            <option value="date-added-desc">Date Added (Newest)</option>
+                            <option value="date-added-asc">Date Added (Oldest)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h3>Card Number</h3>
+                        <div class="range-filter">
+                            <input type="text" id="number-min" placeholder="Min">
+                            <span>to</span>
+                            <input type="text" id="number-max" placeholder="Max">
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="card-container" id="card-list">
